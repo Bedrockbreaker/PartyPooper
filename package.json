@@ -1,0 +1,36 @@
+{
+	"name": "partypooper",
+	"version": "0.1.0",
+	"type": "module",
+	"description": "Modding Utility for Party Project",
+	"main": "./src/main.ts",
+	"scripts": {
+		"clean": "node --experimental-strip-types ./tools/clean.ts",
+		"build": "rollup --config rollup.config.ts --configPlugin typescript --environment BUILD:release",
+		"build-debug": "rollup --config rollup.config.ts --configPlugin typescript",
+		"gen-blob": "node --experimental-sea-config ./sea-config.json",
+		"copy-exec": "cp $(command -v node) ./dist/PartyPooper",
+		"copy-exec-win": "node -e \"require('fs').copyFileSync(process.execPath, './dist/PartyPooper.exe')\"",
+		"inject": "postject ./dist/PartyPooper NODE_SEA_BLOB ./dist/partypooper.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2",
+		"inject-win": "postject ./dist/PartyPooper.exe NODE_SEA_BLOB ./dist/partypooper.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"
+	},
+	"author": "Bedrockbreaker",
+	"license": "MIT",
+	"devDependencies": {
+		"@rollup/plugin-commonjs": "^28.0.1",
+		"@rollup/plugin-node-resolve": "^15.3.0",
+		"@rollup/plugin-terser": "^0.4.4",
+		"@rollup/plugin-typescript": "^12.1.1",
+		"@types/node": "^22.10.1",
+		"@types/yauzl": "^2.10.3",
+		"postject": "^1.0.0-alpha.6",
+		"rollup": "^4.28.0",
+		"tslib": "^2.8.1",
+		"typescript": "^5.7.2"
+	},
+	"dependencies": {
+		"@commander-js/extra-typings": "^12.1.0",
+		"commander": "^12.1.0",
+		"yauzl": "^3.2.0"
+	}
+}

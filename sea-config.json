@@ -1,0 +1,5 @@
+{
+	"main": "./dist/partypooper.min.cjs",
+	"output": "./dist/partypooper.blob",
+	"disableExperimentalSEAWarning": true
+}

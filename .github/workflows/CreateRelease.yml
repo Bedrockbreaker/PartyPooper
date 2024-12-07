@@ -1,0 +1,56 @@
+name: Build and Release Party Pooper
+
+on:
+  push:
+    paths:
+      - package.json
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      
+      - name: Compare version against latest release
+        id: version-check
+        run: |
+          if git diff --exit-code HEAD^ HEAD -- package.json; then
+            echo "No changes detected in package.json"
+            exit 1
+          fi
+          NEW_VERSION=$(jq -r '.version' package.json)
+          echo "New version detected: $NEW_VERSION"
+          echo "VERSION=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+    
+      - name: Set up Node.js
+        if: ${{ success() }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+        
+      - name: Install dependencies
+        if: ${{ success() }}
+        run: npm ci
+      
+      - name: Build
+        if: ${{ success() }}
+        run: |
+          npm run build
+          npm run gen-blob
+          npm run copy-exec
+          npm run inject
+      
+      - name: Create Release
+        if: ${{ success() }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/PartyPooper.exe
+          tag_name: v${{ steps.version-check.outputs.VERSION }}
+          body: ${{ github.event.head_commit.message }}
+          name: Party Pooper

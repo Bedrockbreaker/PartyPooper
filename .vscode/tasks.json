@@ -1,0 +1,27 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Full Build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [
+				"$tsc"
+			],
+			"command": "npm run clean && npm run build && npm run prepare && npm run copy-exec && npm run inject",
+			"windows": {
+				"command": "npm run clean && npm run build && npm run gen-blob && npm run copy-exec-win && npm run inject-win"
+			}
+		},
+		{
+			"type": "npm",
+			"script": "build-debug",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "Debug Build"
+		}
+	]
+}
