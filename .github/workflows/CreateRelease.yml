@@ -47,8 +47,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/PartyPooper
-            dist/PartyPooper.exe
+            dist/PartyPooper-linux-x64
+            dist/PartyPooper-win-x64.exe
           tag_name: v${{ steps.version-check.outputs.VERSION }}
           body: ${{ github.event.head_commit.message }}
           name: Party Pooper v${{ steps.version-check.outputs.VERSION }}
