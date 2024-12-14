@@ -1,9 +1,9 @@
 import { createWriteStream, mkdirSync } from "fs";
+import { readdir, stat } from "fs/promises";
 import { basename, dirname, join } from "path";
 import { Readable } from "stream";
-import { ZipFile } from "yazl";
 import { type Entry, open as unzip, type ZipFile as UnZipFile } from "yauzl";
-import { readdir, stat } from "fs/promises";
+import { ZipFile } from "yazl";
 
 function mkdir(directory: string) {
 	mkdirSync(directory, {recursive: true});
