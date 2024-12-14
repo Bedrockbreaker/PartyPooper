@@ -19,8 +19,6 @@ function fileImport(include: FilterPattern, exclude?: FilterPattern): Plugin {
 			if (!filter(id)) return;
 
 			code = code.replace(/`|\\/g, "\\$&");
-			// mangle the sentinel value, so that it doesn't appear in the source code
-			code = code.replace(/NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2/g, "");
 
 			if (filter(id)) return {
 				code: `export default \`${code}\``,
@@ -51,10 +49,7 @@ export const options: RollupOptions = {
 	input: "./src/main.ts",
 	output,
 	plugins: [
-		typescript({
-			tsconfig: "./src/tsconfig.json",
-			allowImportingTsExtensions: false
-		}),
+		typescript({tsconfig: "./src/tsconfig.json"}),
 		nodeResolve(),
 		commonjs(),
 		fileImport(["**/*.json"])
