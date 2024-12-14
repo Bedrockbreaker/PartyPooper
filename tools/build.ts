@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import { program } from "@commander-js/extra-typings";
-import { copyFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, renameSync, rmSync, unlinkSync } from "fs";
+import { copyFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, renameSync } from "fs";
 import { homedir, tmpdir } from "os";
 import { join } from "path";
 import { inject } from "postject";
