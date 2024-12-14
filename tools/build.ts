@@ -73,7 +73,7 @@ async function getNode(target: string, targetNodeVersion: string) {
 		}
 
 		if (!existsSync(cachePath)) {
-			mkdirSync(cachePath);
+			mkdirSync(cachePath, {recursive: true});
 		}
 
 		renameSync(nodeExecutable, executablePath);
