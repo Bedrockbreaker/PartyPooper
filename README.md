@@ -4,7 +4,7 @@ Modding Utility for Party Project
 
 > [!IMPORTANT]
 > Party Pooper does *not* contain of any Party Project's code or assets.
-> As far as I'm aware, Party Project does not explictly define a license on its code and assets, making it All Rights Reserved by default.
+> As far as I'm aware, Party Project does not explictly define a license, making it All Rights Reserved by default.
 > Download your own (free) copy of Party Project yourself from their itch page.
 
 ## Usage
@@ -15,34 +15,32 @@ Usage: PartyPooper [options] <file> [destination]
 
 Modding Utility for Party Project
 
-Arguments:
-  file           path to the package.nw file
-  destination    directory to extract the assets to (default: "./partyproject")
-
 Options:
-  -V, --version  output the version number
-  -h, --help     display help for command
+  -V, --version                output the version number
+  -h, --help                   display help for command
+
+Commands:
+  pack <assets> [output]       packs assets into a package.nw file
+  unpack <file> [destination]  unpacks a package.nw file
+  help [command]               display help for command
 ```
 
 ## Building from Source
 
 Requires Node.js `v20.6.0` or later.
 
-Download and install dependencies:
 ```bash
 git clone https://github.com/Bedrockbreaker/PartyPooper
 cd PartyPooper
 npm install
 ```
 
-After that, build the actual executable.
-
-Linux:
+Then, run the build tool for the platform(s) you're building for.
 ```bash
-npm run build && npm run gen-blob && npm run copy-exec && npm run inject
+node --experimental-strip-types ./tools/build.ts linux-x64 win-x64
 ```
 
-Windows:
-```batch
-npm run build && npm run gen-blob && npm run copy-exec-win && npm run inject-win
+Alternatively, use the npm script to build both `linux-x64` and `win-x64`.
+```bash
+npm run build
 ```
