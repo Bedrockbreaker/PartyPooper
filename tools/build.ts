@@ -90,7 +90,7 @@ async function getNode(target: string, targetNodeVersion: string) {
 program
 	.description("builds the project")
 	.argument("[targets...]", "Platform(s) to build for, e.g. 'linux-x64' or 'win-arm64'")
-	.option("--node-version <version>", "Node version to build for")
+	.option("--node-version <version>", "Node version to build for", process.version.slice(1))
 	.option("--debug", "Build in debug mode", false)
 	.action(async (targets, {nodeVersion: targetNodeVersion, debug: isDebug}) => {
 		build(isDebug);
@@ -114,7 +114,7 @@ program
 
 		for (const target of targets) {
 			const executablePath = await getNode(target, targetNodeVersion);
-			const distExecutable = join("./dist", `PartyPooper${target.includes("win") ? ".exe" : ""}`);
+			const distExecutable = join("./dist", `PartyPooper-${target}${target.includes("win") ? ".exe" : ""}`);
 			copyFileSync(executablePath, distExecutable);
 
 			console.log(`Injecting: ${distExecutable}`);

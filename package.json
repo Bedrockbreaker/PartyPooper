@@ -1,13 +1,13 @@
 {
 	"name": "partypooper",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"type": "module",
 	"description": "Modding Utility for Party Project",
 	"main": "./src/main.ts",
 	"scripts": {
 		"clean": "node --experimental-strip-types ./tools/clean.ts",
 		"full-clean": "node --experimental-strip-types ./tools/clean.ts --clean-cache",
-		"build": "node --experimental-strip-types ./tools/build.ts linux-x64 win-x64 --node-version 22.9.0",
+		"build": "node --experimental-strip-types ./tools/build.ts linux-x64 win-x64",
 		"build-debug": "node --experimental-strip-types ./tools/build.ts --debug"
 	},
 	"author": "Bedrockbreaker",
