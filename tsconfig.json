@@ -5,12 +5,10 @@
 		"moduleResolution": "NodeNext",
 		"noEmit": true,
 		"verbatimModuleSyntax": true,
+		"allowImportingTsExtensions": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
 		"skipLibCheck": true
-	},
-	"include": [
-		"rollup.config.ts"
-	]
+	}
 }

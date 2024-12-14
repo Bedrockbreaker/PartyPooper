@@ -11,10 +11,7 @@
 			"problemMatcher": [
 				"$tsc"
 			],
-			"command": "npm run clean && npm run build && npm run prepare && npm run copy-exec && npm run inject",
-			"windows": {
-				"command": "npm run clean && npm run build && npm run gen-blob && npm run copy-exec-win && npm run inject-win"
-			}
+			"command": "npm run clean && npm run build"
 		},
 		{
 			"type": "npm",

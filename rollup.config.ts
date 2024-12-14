@@ -43,13 +43,18 @@ if (process.env.BUILD === "release") {
 		format: "commonjs",
 		plugins: [terser()]
 	});
+} else if (process.env.BUILD !== "debug") {
+	throw new Error("Unknown build mode: " + process.env.BUILD);
 }
 
 export const options: RollupOptions = {
 	input: "./src/main.ts",
 	output,
 	plugins: [
-		typescript({tsconfig: "./src/tsconfig.json"}),
+		typescript({
+			tsconfig: "./src/tsconfig.json",
+			allowImportingTsExtensions: false
+		}),
 		nodeResolve(),
 		commonjs(),
 		fileImport(["**/*.json"])

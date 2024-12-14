@@ -40,17 +40,15 @@ jobs:
       
       - name: Build
         if: ${{ success() }}
-        run: |
-          npm run build
-          npm run gen-blob
-          npm run copy-exec
-          npm run inject
+        run: npm run build
       
       - name: Create Release
         if: ${{ success() }}
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/PartyPooper.exe
+          files: |
+            dist/PartyPooper
+            dist/PartyPooper.exe
           tag_name: v${{ steps.version-check.outputs.VERSION }}
           body: ${{ github.event.head_commit.message }}
-          name: Party Pooper
+          name: Party Pooper v${{ steps.version-check.outputs.VERSION }}
