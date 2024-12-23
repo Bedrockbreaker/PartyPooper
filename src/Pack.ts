@@ -12,4 +12,4 @@ program
 		ZipDirectory(assets, output).then(() => {
 			console.log(`Successfully packed ${assets} to ${output}`);
 		});
-	})
+	});
