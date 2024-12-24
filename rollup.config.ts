@@ -20,7 +20,7 @@ function fileImport(include: FilterPattern, exclude?: FilterPattern): Plugin {
 
 			code = code.replace(/`|\\/g, "\\$&");
 
-			if (filter(id)) return {
+			return {
 				code: `export default \`${code}\``,
 				map: { mappings: "" }
 			}
@@ -42,7 +42,7 @@ if (process.env.BUILD === "release") {
 		plugins: [terser()]
 	});
 } else if (process.env.BUILD !== "debug") {
-	throw new Error("Unknown build mode: " + process.env.BUILD);
+	throw new Error(`Unknown build mode: ${process.env.BUILD}`);
 }
 
 export const options: RollupOptions = {
