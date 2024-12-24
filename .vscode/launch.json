@@ -8,7 +8,7 @@
 			"name": "Debug",
 			"program": "${workspaceFolder}/dist/partypooper.cjs",
 			"args": [
-				"./partyproject/package.nw"
+				"--help"
 			],
 			"request": "launch",
 			"skipFiles": [
