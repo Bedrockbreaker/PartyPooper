@@ -41,9 +41,9 @@ cd PartyPooper
 npm install
 ```
 
-Then, run the build tool for the platform(s) you're building for.
+Then, run the build tool:
 ```bash
-node --experimental-strip-types ./tools/build.ts linux-x64 win-x64
+node --experimental-strip-types ./tools/build.ts
 ```
 
 There are a number of options for building:
