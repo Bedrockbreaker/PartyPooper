@@ -1,6 +1,6 @@
 {
 	"name": "partypooper",
-	"version": "0.2.3",
+	"version": "0.3.0",
 	"type": "module",
 	"description": "Modding Utility for Party Project",
 	"main": "./src/main.ts",
@@ -24,7 +24,8 @@
 		"rollup": "^4.28.0",
 		"tar": "^7.4.3",
 		"tslib": "^2.8.1",
-		"typescript": "^5.7.2"
+		"typescript": "^5.7.2",
+		"xz-decompress": "^0.2.2"
 	},
 	"dependencies": {
 		"@commander-js/extra-typings": "^12.1.0",
