@@ -1,6 +1,6 @@
 {
 	"name": "partypooper",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"type": "module",
 	"description": "Modding Utility for Party Project",
 	"main": "./src/main.ts",
@@ -20,6 +20,7 @@
 		"@types/node": "^22.10.1",
 		"@types/yauzl": "^2.10.3",
 		"@types/yazl": "^2.4.5",
+		"magic-string": "^0.30.17",
 		"postject": "^1.0.0-alpha.6",
 		"rollup": "^4.28.0",
 		"tar": "^7.4.3",
