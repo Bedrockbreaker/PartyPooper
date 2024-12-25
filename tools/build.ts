@@ -91,11 +91,13 @@ function generateBlob(target: BuildTarget, ffmpegMode: FfmpegMode) {
 		throw new Error(`Incompatible node version: ${process.version}. Minimum required: ${minimumNodeVersion}`);
 	}
 
-	const configPath = `./dist/sea-config-${target.asNodeString()}.json`;
+	const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
+
+	const configPath = `./dist/sea-config-${target.asNodeString()}${ffmpegSuffix}.json`;
 
 	const config = {
-		main: "./dist/partypooper.min.cjs",
-		output: `./dist/partypooper-${target.asNodeString()}.blob`,
+		main: `./dist/partypooper${ffmpegSuffix}.min.cjs`,
+		output: `./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.blob`,
 		disableExperimentalSEAWarning: true,
 		assets: {} as Record<string, string>
 	};
@@ -300,9 +302,11 @@ program
 				generateBlob(target, ffmpegMode);
 			}
 
+			const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
+			
 			for (const target of targets) {
 				const executablePath = await getNode(target, targetNodeVersion);
-				const appName = `PartyPooper-${{static: "", shared: "ffmpeg-shared-", none: "ffmpeg-none-"}[ffmpegMode]}${target.asNodeString()}`;
+				const appName = `PartyPooper-${target.asNodeString()}${ffmpegSuffix}`;
 				const distExecutable = join("./dist", `${appName}${target.isWindows ? ".exe" : ""}`);
 				copyFileSync(executablePath, distExecutable);
 
@@ -311,7 +315,7 @@ program
 				await inject(
 					distExecutable,
 					"NODE_SEA_BLOB",
-					readFileSync(`./dist/partypooper-${target.asNodeString()}.blob`),
+					readFileSync(`./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.blob`),
 					{sentinelFuse: "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"}
 				);
 

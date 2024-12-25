@@ -138,14 +138,14 @@ function evalPredicate(predicate: string): boolean {
 
 const output: OutputOptions[] = [
 	{
-		file: "./dist/partypooper.cjs",
+		file: `./dist/partypooper${{static: "", shared: "-shared", none: "-no-ffmpeg"}[process.env.FFMPEG || "static"]}.cjs`,
 		format: "commonjs"
 	}
 ];
 
 if (process.env.BUILD === "release") {
 	output.push({
-		file: "./dist/partypooper.min.cjs",
+		file: `./dist/partypooper${{static: "", shared: "-shared", none: "-no-ffmpeg"}[process.env.FFMPEG || "static"]}.min.cjs`,
 		format: "commonjs",
 		plugins: [terser()]
 	});
