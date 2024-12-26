@@ -12,7 +12,14 @@ program
 		mkdirSync(dist);
 		
 		if (!cleanCache) return;
+
 		const cache = join(homedir(), ".cache", "partypooper");
 		rmSync(cache, {recursive: true, force: true});
+
+		const dataDir = process.platform === "win32"
+			? process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local")
+			: process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share");
+		const assetDir = join(dataDir, "partypooper");
+		rmSync(assetDir, {recursive: true, force: true});
 	})
 	.parse();
