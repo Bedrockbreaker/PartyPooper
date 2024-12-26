@@ -127,7 +127,6 @@ async function build(isDebug: boolean, target: BuildTarget, ffmpegMode: FfmpegMo
 
 	let buildFailed = false;
 	for (const bundleOptions of options) {
-		console.log(bundleOptions.input);
 		// "await using bundle" is a typescript-only feature (can't be used with node --experimental-strip-types)
 		let bundle: RollupBuild | undefined;
 		try {
