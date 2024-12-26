@@ -21,10 +21,15 @@ export function EnsureAsset(asset: Asset) {
 	//#if BUILD === "debug"
 	return EnsureAssetLocal(asset, config.assets[asset]);
 	//#else
-	const dataDir = process.platform === "win32"
-		? process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local")
-		: process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share");
-	const assetPath = join(dataDir, "partypooper", basename(config.assets[asset]));
+
+	let assetPath: string;
+	//#if IS_WINDOWS
+	assetPath = process.env.LOCALAPPDATA ?? join(homedir(), "AppData", "Local");
+	//#else
+	assetPath = process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share");
+	//#endif
+
+	assetPath = join(assetPath, "partypooper", basename(config.assets[asset]));
 	return EnsureAssetSea(asset, assetPath);
 	//#endif
 }
