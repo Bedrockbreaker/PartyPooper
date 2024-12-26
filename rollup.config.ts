@@ -136,16 +136,28 @@ function evalPredicate(predicate: string): boolean {
 	}
 }
 
+if (!process.env.BUILD) {
+	throw new Error("Missing BUILD environment variable");
+}
+if (!process.env.TARGET) {
+	throw new Error("Missing TARGET environment variable");
+}
+
+const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[process.env.FFMPEG || "static"];
+if (ffmpegSuffix === undefined) {
+	throw new Error(`Unknown FFMPEG environment variable: ${process.env.FFMPEG}`)
+}
+
 const output: OutputOptions[] = [
 	{
-		file: `./dist/partypooper${{static: "", shared: "-shared", none: "-no-ffmpeg"}[process.env.FFMPEG || "static"]}.cjs`,
+		file: `./dist/partypooper-${process.env.TARGET}${ffmpegSuffix}-${process.env.BUILD}.cjs`,
 		format: "commonjs"
 	}
 ];
 
 if (process.env.BUILD === "release") {
 	output.push({
-		file: `./dist/partypooper${{static: "", shared: "-shared", none: "-no-ffmpeg"}[process.env.FFMPEG || "static"]}.min.cjs`,
+		file: `./dist/partypooper-${process.env.TARGET}${ffmpegSuffix}.cjs`,
 		format: "commonjs",
 		plugins: [terser()]
 	});

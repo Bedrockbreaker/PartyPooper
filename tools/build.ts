@@ -2,14 +2,16 @@ import { execSync } from "child_process";
 import { Argument, Option, program } from "@commander-js/extra-typings";
 import { copyFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { homedir, tmpdir } from "os";
-import { basename, join, sep } from "path";
+import { basename, join } from "path";
 import { inject } from "postject";
+import { rollup, type RollupBuild } from "rollup";
+import { loadConfigFile } from "rollup/loadConfigFile";
+import { Readable } from "stream";
 import { pipeline } from "stream/promises";
 import { extract as ExtractTar } from "tar";
 import XZ from "xz-decompress";
 
 import { ExtractZip } from "../src/Zip.ts";
-import { Readable } from "stream";
 
 export type FfmpegMode = "static" | "shared" | "none";
 
@@ -80,20 +82,13 @@ class NodeVersion {
 
 const minimumNodeVersion = new NodeVersion("20.6.0");
 
-function build(isDebug: boolean, ffmpegMode: FfmpegMode) {
-	console.log(`Building ${isDebug	? "Debug" : "Release"}`);
-
-	const rollupCommand = `npx rollup --config rollup.config.ts --configPlugin typescript --environment BUILD:${isDebug ? "debug" : "release"},FFMPEG:${ffmpegMode}`;
-	execSync(rollupCommand, { stdio: "inherit" });
-}
-
 function writeConfig(target: BuildTarget, ffmpegMode: FfmpegMode) {
 	const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
 
 	const configPath = `./dist/sea-config-${target.asNodeString()}${ffmpegSuffix}.json`;
 
 	const config = {
-		main: `./dist/partypooper${ffmpegSuffix}.min.cjs`,
+		main: `./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.cjs`,
 		output: `./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.blob`,
 		disableExperimentalSEAWarning: true,
 		assets: {} as Record<string, string>
@@ -113,6 +108,38 @@ function writeConfig(target: BuildTarget, ffmpegMode: FfmpegMode) {
 	writeFileSync(join(root, "src", "config.json"), configString);
 
 	return configPath;
+}
+
+async function build(isDebug: boolean, target: BuildTarget, ffmpegMode: FfmpegMode) {
+	console.log(`Building ${isDebug	? "Debug" : "Release"}`);
+
+	process.env.BUILD = isDebug ? "debug" : "release";
+	process.env.TARGET = target.asNodeString();
+	process.env.IS_WINDOWS = target.isWindows ? "true" : "";
+	process.env.FFMPEG = ffmpegMode;
+
+	const rollupConfigPath = join(root, "rollup.config.ts");
+	const {options, warnings} = await loadConfigFile(rollupConfigPath, {
+		configPlugin: "typescript"
+	});
+
+	warnings.flush();
+
+	let buildFailed = false;
+	for (const bundleOptions of options) {
+		console.log(bundleOptions.input);
+		// "await using bundle" is a typescript-only feature (can't be used with node --experimental-strip-types)
+		let bundle: RollupBuild | undefined;
+		try {
+			bundle = await rollup(bundleOptions);
+			await Promise.all(bundleOptions.output.map(bundle.write));
+		} catch (error) {
+			buildFailed = true;
+			console.error(error);
+		}
+		await bundle?.close();
+		if (buildFailed) program.error("Build failed");
+	}
 }
 
 function generateBlob(target: BuildTarget, ffmpegMode: FfmpegMode) {
@@ -297,7 +324,7 @@ program
 
 		for (const target of targets) {
 			writeConfig(target, ffmpegMode);
-			build(isDebug, ffmpegMode);
+			await build(isDebug, target, ffmpegMode);
 		}
 
 		if (isDebug) {
