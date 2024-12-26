@@ -162,7 +162,8 @@ export const options: RollupOptions = {
 		nodeResolve(),
 		commonjs(),
 		fileImport(["**/*.json"])
-	]
+	],
+	external: ["node:sea"]
 };
 
 export default options;
