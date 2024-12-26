@@ -304,13 +304,14 @@ program
 	.addOption(
 		new Option("-f, --ffmpeg <mode>", "Configure ffmpeg support. Static bundles ffmpeg into the binary. Shared uses the system ffmpeg. None disables ffmpeg support.")
 			.choices(["static", "shared", "none"] as const)
+			.default("static" as const)
 	)
 	.action(async (
 		targets,
 		{
 			nodeVersion: targetNodeVersion,
 			debug: isDebug,
-			ffmpeg: ffmpegMode = "static" as const
+			ffmpeg: ffmpegMode
 		}
 	) => {
 		if (targets.length === 0) {
