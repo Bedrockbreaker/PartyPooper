@@ -1,12 +1,13 @@
 {
 	"name": "partypooper",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"type": "module",
 	"description": "Modding Utility for Party Project",
 	"main": "./src/main.ts",
 	"scripts": {
 		"clean": "node --experimental-strip-types ./tools/clean.ts",
 		"full-clean": "node --experimental-strip-types ./tools/clean.ts --clean-cache",
+		"prepare": "npm run build-debug",
 		"build": "node --experimental-strip-types ./tools/build.ts linux-x64 win-x64",
 		"build-debug": "node --experimental-strip-types ./tools/build.ts --debug"
 	},

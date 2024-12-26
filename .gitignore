@@ -1,4 +1,8 @@
+# Generated
 dist/
 node_modules/
+src/config.json
+
+# Testing
 mod/
 partyproject/

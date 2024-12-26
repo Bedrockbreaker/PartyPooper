@@ -2,7 +2,7 @@ import { execSync } from "child_process";
 import { Argument, Option, program } from "@commander-js/extra-typings";
 import { copyFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { homedir, tmpdir } from "os";
-import { basename, join } from "path";
+import { basename, join, sep } from "path";
 import { inject } from "postject";
 import { pipeline } from "stream/promises";
 import { extract as ExtractTar } from "tar";
@@ -14,6 +14,7 @@ import { Readable } from "stream";
 export type FfmpegMode = "static" | "shared" | "none";
 
 const cache = join(homedir(), ".cache", "partypooper");
+const root = join(import.meta.dirname, "..");
 
 class BuildTarget {
 	public os: "linux" | "win";
@@ -86,11 +87,7 @@ function build(isDebug: boolean, ffmpegMode: FfmpegMode) {
 	execSync(rollupCommand, { stdio: "inherit" });
 }
 
-function generateBlob(target: BuildTarget, ffmpegMode: FfmpegMode) {
-	if (minimumNodeVersion.compare(new NodeVersion(process.version)) > 0) {
-		throw new Error(`Incompatible node version: ${process.version}. Minimum required: ${minimumNodeVersion}`);
-	}
-
+function writeConfig(target: BuildTarget, ffmpegMode: FfmpegMode) {
 	const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
 
 	const configPath = `./dist/sea-config-${target.asNodeString()}${ffmpegSuffix}.json`;
@@ -110,7 +107,22 @@ function generateBlob(target: BuildTarget, ffmpegMode: FfmpegMode) {
 		config.assets.ffmpegLicense = ffmpegLicense;
 	}
 
-	writeFileSync(configPath, JSON.stringify(config));
+	const configString = JSON.stringify(config);
+
+	writeFileSync(configPath, configString);
+	writeFileSync(join(root, "src", "config.json"), configString);
+
+	return configPath;
+}
+
+function generateBlob(target: BuildTarget, ffmpegMode: FfmpegMode) {
+	if (minimumNodeVersion.compare(new NodeVersion(process.version)) > 0) {
+		throw new Error(`Incompatible node version: ${process.version}. Minimum required: ${minimumNodeVersion}`);
+	}
+
+	const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
+
+	const configPath = `./dist/sea-config-${target.asNodeString()}${ffmpegSuffix}.json`;
 
 	const blobCommand = `node --experimental-sea-config ${configPath}`;
 	execSync(blobCommand, { stdio: "inherit" });
@@ -266,61 +278,64 @@ program
 	.addOption(
 		new Option("-f, --ffmpeg <mode>", "Configure ffmpeg support. Static bundles ffmpeg into the binary. Shared uses the system ffmpeg. None disables ffmpeg support.")
 			.choices(["static", "shared", "none"] as const)
-			.default("static")
 	)
-	.action(
-		async (
-			targets,
-			{
-				nodeVersion: targetNodeVersion,
-				debug: isDebug,
-				ffmpeg: ffmpegModeUntyped
-			}
-		) => {
-			const ffmpegMode = ffmpegModeUntyped as FfmpegMode;
-			build(isDebug, ffmpegMode);
-
-			if (isDebug) {
-				console.log("Finished building debug");
-				return;
-			}
-
-			if (minimumNodeVersion.compare(targetNodeVersion) > 0) {
-				program.error(`Incompatible target build node version: ${targetNodeVersion}. Minimum required: ${minimumNodeVersion}`);
-			}
-
-			if (targets.length === 0) {
-				targets.push(new BuildTarget(process.platform + "-" + process.arch));
-			}
-			
-			for (const target of targets) {
-				if (ffmpegMode === "static") {
-					await getFfmpeg(target);
-				}
-
-				console.log(`Generating blob for ${target.asNodeString()}`);
-				generateBlob(target, ffmpegMode);
-			}
-
-			const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
-			
-			for (const target of targets) {
-				const executablePath = await getNode(target, targetNodeVersion);
-				const appName = `PartyPooper-${target.asNodeString()}${ffmpegSuffix}`;
-				const distExecutable = join("./dist", `${appName}${target.isWindows ? ".exe" : ""}`);
-				copyFileSync(executablePath, distExecutable);
-
-				console.log(`Injecting: ${distExecutable}`);
-
-				await inject(
-					distExecutable,
-					"NODE_SEA_BLOB",
-					readFileSync(`./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.blob`),
-					{sentinelFuse: "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"}
-				);
-
-				console.log(`Finished building ${appName}`);
-			}
+	.action(async (
+		targets,
+		{
+			nodeVersion: targetNodeVersion,
+			debug: isDebug,
+			ffmpeg: ffmpegMode = "static" as const
 		}
-	)
+	) => {
+		if (targets.length === 0) {
+			targets.push(new BuildTarget(process.platform + "-" + process.arch));
+		}
+
+		if (!existsSync(join(root, "dist"))) {
+			mkdirSync(join(root, "dist"));
+		}
+
+		for (const target of targets) {
+			writeConfig(target, ffmpegMode);
+			build(isDebug, ffmpegMode);
+		}
+
+		if (isDebug) {
+			console.log("Finished building debug");
+			return;
+		}
+
+		if (minimumNodeVersion.compare(targetNodeVersion) > 0) {
+			program.error(`Incompatible target build node version: ${targetNodeVersion}. Minimum required: ${minimumNodeVersion}`);
+		}
+		
+		for (const target of targets) {
+			if (ffmpegMode === "static") {
+				await getFfmpeg(target);
+			}
+
+			console.log(`Generating blob for ${target.asNodeString()}`);
+			generateBlob(target, ffmpegMode);
+		}
+
+		const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
+		
+		for (const target of targets) {
+			const executablePath = await getNode(target, targetNodeVersion);
+			const appName = `PartyPooper-${target.asNodeString()}${ffmpegSuffix}`;
+			const distExecutable = join("./dist", `${appName}${target.isWindows ? ".exe" : ""}`);
+			copyFileSync(executablePath, distExecutable);
+
+			console.log(`Injecting: ${distExecutable}`);
+
+			await inject(
+				distExecutable,
+				"NODE_SEA_BLOB",
+				readFileSync(`./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.blob`),
+				{sentinelFuse: "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"}
+			);
+
+			console.log(`Finished building ${appName}`);
+		}
+	})
 	.parse();
