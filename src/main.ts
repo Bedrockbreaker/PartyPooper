@@ -3,6 +3,10 @@ import { program } from "@commander-js/extra-typings";
 import "./Pack";
 import "./Unpack";
 
+//#if FFMPEG !== "none"
+import "./Convert"
+//#endif
+
 import packageJsonString from "../package.json";
 
 const packageJson: typeof packageJsonString =

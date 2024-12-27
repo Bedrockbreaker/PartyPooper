@@ -22,13 +22,15 @@ Usage: PartyPooper [options] [command]
 Modding Utility for Party Project
 
 Options:
-  -V, --version                output the version number
-  -h, --help                   display help for command
+  -V, --version                       output the version number
+  -h, --help                          display help for command
 
 Commands:
-  pack <assets> [output]       packs assets into a package.nw file
-  unpack <file> [destination]  unpacks a package.nw file
-  help [command]               display help for command
+  pack <assets> [output]              packs assets into a package.nw file
+  unpack <file> [destination]         unpacks a package.nw file
+  convert [options] <input> [output]  Converts a video/gif/image file into webm, for replacing a minigame
+                                      video.
+  help [command]                      display help for command
 ```
 
 ## Building from Source
