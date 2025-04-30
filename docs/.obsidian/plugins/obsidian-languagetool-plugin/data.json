@@ -1,0 +1,10 @@
+{
+  "serverUrl": "http://localhost:8081",
+  "urlMode": "custom",
+  "glassBg": false,
+  "shouldAutoCheck": true,
+  "autoCheckDelay": 3000,
+  "pickyMode": false,
+  "staticLanguage": "auto",
+  "englishVeriety": "en-US"
+}

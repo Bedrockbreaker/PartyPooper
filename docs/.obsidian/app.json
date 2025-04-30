@@ -1,0 +1,23 @@
+{
+  "spellcheck": false,
+  "newLinkFormat": "relative",
+  "useMarkdownLinks": true,
+  "showUnsupportedFiles": true,
+  "userIgnoreFilters": [
+    "Templates/"
+  ],
+  "showInlineTitle": false,
+  "spellcheckDictionary": [
+    "Pooper",
+    "Decompilation",
+    "Modders",
+    "FFMeg",
+    "modders",
+    "setup",
+    "memoization",
+    "monkeypatch",
+    "patchable",
+    "Annotatable",
+    "decompilation"
+  ]
+}
