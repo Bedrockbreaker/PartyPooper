@@ -4,10 +4,10 @@ import { chmodSync, rmSync } from "fs";
 import { mimeType } from "mime-type/with-db";
 import { join } from "path";
 
-//#if FFMPEG !== "shared"
+//#if FFMPEG === "static"
 import { setFfmpegPath } from "fluent-ffmpeg";
 
-import { EnsureAsset } from "./FileManager";
+import { EnsureAsset } from "../FileManagement/FileManager";
 //#endif
 
 const presets = {
@@ -195,7 +195,7 @@ program
 		//#if FFMPEG === "static"
 		const {assetPath: ffmpegPath, existed} = EnsureAsset("ffmpeg");
 		const {assetPath: licensePath} = EnsureAsset("ffmpegLicense");
-		
+
 		if (!existed) {
 			console.log("\nThis program uses ffmpeg to convert files to webm.");
 			console.log(`You can see its license at ${licensePath}\n`);
@@ -229,8 +229,7 @@ program
 				}
 				command.input(audio);
 				if (inputType === "image/gif") {
-					command
-						.addOptions(["-shortest", "-fflags", "shortest"]);
+					command.addOptions(["-shortest", "-fflags", "shortest"]);
 				}
 			} else if (inputType !== "image/gif") {
 				command.loop(5).outputFPS(.2);	

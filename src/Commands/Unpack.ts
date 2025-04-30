@@ -1,6 +1,6 @@
 import { program } from "@commander-js/extra-typings";
 
-import { ExtractZip } from "./Zip";
+import { ExtractZip } from "../../shared/ZipArchive";
 
 program
 	.command("unpack")

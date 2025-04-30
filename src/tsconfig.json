@@ -4,12 +4,13 @@
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"resolveJsonModule": true,
-		"esModuleInterop": true, 
+		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
 		"skipLibCheck": true
 	},
 	"include": [
-		"./**/*.ts"
+		"./**/*.ts",
+		"../shared/**/*.ts"
 	]
 }

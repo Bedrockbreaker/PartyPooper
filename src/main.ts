@@ -1,10 +1,10 @@
 import { program } from "@commander-js/extra-typings";
 
-import "./Pack";
-import "./Unpack";
+import "./Commands/Pack";
+import "./Commands/Unpack";
 
 //#if FFMPEG !== "none"
-import "./Convert"
+import "./Commands/Convert"
 //#endif
 
 import packageJsonString from "../package.json";

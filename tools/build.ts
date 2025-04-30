@@ -11,9 +11,10 @@ import { pipeline } from "stream/promises";
 import { extract as ExtractTar } from "tar";
 import XZ from "xz-decompress";
 
-import { ExtractZip } from "../src/Zip.ts";
+import type { Asset } from "../shared/AssetManifest.ts";
+import { ExtractZip } from "../shared/ZipArchive.ts";
 
-export type FfmpegMode = "static" | "shared" | "none";
+export type FFmpegMode = "static" | "shared" | "none";
 
 const cache = join(homedir(), ".cache", "partypooper");
 const root = join(import.meta.dirname, "..");
@@ -24,23 +25,23 @@ class BuildTarget {
 	public isWindows: boolean;
 
 	public constructor(target: string) {
-		const match = target.match(/^(linux|win)-?(arm64|x?64)$/);
+		const match = target.match(/^(linux|win(?:32)?)-?(arm64|x?64)$/);
 		if (match === null) {
 			throw new Error(`Invalid or unsupported target: ${target}`);
 		}
 
 		const [os, arch] = match.slice(1);
-	
-		this.os = os as typeof this.os;
+
+		this.os = os === "win32" ? "win" : os as typeof this.os;
 		this.arch = arch === "64" ? "x64" : arch as typeof this.arch;
 		this.isWindows = os === "win";
 	}
 
-	public asNodeString(): string {
+	public asNodeFormat(): string {
 		return `${this.os}-${this.arch}`;
 	}
 
-	public asFfmpegString(): string {
+	public asFFmpegFormat(): string {
 		const arch = this.arch === "x64" ? "64" : this.arch;
 		return `${this.os}${arch}`;
 	}
@@ -82,20 +83,20 @@ class NodeVersion {
 
 const minimumNodeVersion = new NodeVersion("20.6.0");
 
-function writeConfig(target: BuildTarget, ffmpegMode: FfmpegMode) {
+function writeConfig(buildTarget: BuildTarget, ffmpegMode: FFmpegMode) {
 	const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
 
-	const configPath = `./dist/sea-config-${target.asNodeString()}${ffmpegSuffix}.json`;
+	const configPath = `./intermediate/sea-config-${buildTarget.asNodeFormat()}${ffmpegSuffix}.json`;
 
 	const config = {
-		main: `./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.cjs`,
-		output: `./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.blob`,
+		main: `./intermediate/partypooper-${buildTarget.asNodeFormat()}${ffmpegSuffix}.cjs`,
+		output: `./intermediate/partypooper-${buildTarget.asNodeFormat()}${ffmpegSuffix}.blob`,
 		disableExperimentalSEAWarning: true,
-		assets: {} as Record<string, string>
+		assets: {} as Partial<Record<Asset, string>>
 	};
 
 	if (ffmpegMode === "static") {
-		const ffmpegPath = join(cache, `ffmpeg-${target.asNodeString()}${target.isWindows ? ".exe" : ""}`);
+		const ffmpegPath = join(cache, `ffmpeg-${buildTarget.asNodeFormat()}${buildTarget.isWindows ? ".exe" : ""}`);
 		const ffmpegLicense = join(cache, "ffmpeg-LICENSE.txt");
 
 		config.assets.ffmpeg = ffmpegPath;
@@ -105,16 +106,16 @@ function writeConfig(target: BuildTarget, ffmpegMode: FfmpegMode) {
 	const configString = JSON.stringify(config);
 
 	writeFileSync(configPath, configString);
-	writeFileSync(join(root, "src", "config.json"), configString);
+	writeFileSync(join(root, "intermediate", "config.txt"), configString);
 
 	return configPath;
 }
 
-async function build(isDebug: boolean, target: BuildTarget, ffmpegMode: FfmpegMode) {
+async function build(isDebug: boolean, target: BuildTarget, ffmpegMode: FFmpegMode) {
 	console.log(`Building ${isDebug	? "Debug" : "Release"}`);
 
 	process.env.BUILD = isDebug ? "debug" : "release";
-	process.env.TARGET = target.asNodeString();
+	process.env.TARGET = target.asNodeFormat();
 	process.env.IS_WINDOWS = target.isWindows ? "true" : "";
 	process.env.FFMPEG = ffmpegMode;
 
@@ -141,14 +142,14 @@ async function build(isDebug: boolean, target: BuildTarget, ffmpegMode: FfmpegMo
 	}
 }
 
-function generateBlob(target: BuildTarget, ffmpegMode: FfmpegMode) {
+function generateBlob(target: BuildTarget, ffmpegMode: FFmpegMode) {
 	if (minimumNodeVersion.compare(new NodeVersion(process.version)) > 0) {
 		throw new Error(`Incompatible node version: ${process.version}. Minimum required: ${minimumNodeVersion}`);
 	}
 
 	const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
 
-	const configPath = `./dist/sea-config-${target.asNodeString()}${ffmpegSuffix}.json`;
+	const configPath = `./intermediate/sea-config-${target.asNodeFormat()}${ffmpegSuffix}.json`;
 
 	const blobCommand = `node --experimental-sea-config ${configPath}`;
 	execSync(blobCommand, { stdio: "inherit" });
@@ -204,9 +205,9 @@ async function downloadAndExtract(url: string) {
 }
 
 async function getNode(buildTarget: BuildTarget, targetVersion: NodeVersion) {
-	const archiveName = `node-${targetVersion}-${buildTarget.asNodeString()}`;
+	const archiveName = `node-${targetVersion}-${buildTarget.asNodeFormat()}`;
 	const nodePath = join(cache, archiveName + (buildTarget.isWindows ? ".exe" : ""));
-	
+
 	if (existsSync(nodePath)) {
 		console.log(`Using cached node executable: ${nodePath}`);
 		return nodePath;
@@ -238,7 +239,7 @@ async function getNode(buildTarget: BuildTarget, targetVersion: NodeVersion) {
 }
 
 async function getFfmpeg(buildTarget: BuildTarget) {
-	const ffmpegTarget = `ffmpeg-${buildTarget.asNodeString()}`;
+	const ffmpegTarget = `ffmpeg-${buildTarget.asNodeFormat()}`;
 	const ffmpegPath = join(cache, ffmpegTarget + (buildTarget.isWindows ? ".exe" : ""));
 
 	if (existsSync(ffmpegPath)) {
@@ -246,7 +247,7 @@ async function getFfmpeg(buildTarget: BuildTarget) {
 		return ffmpegPath;
 	}
 
-	const archiveName = `ffmpeg-master-latest-${buildTarget.asFfmpegString()}-lgpl`;
+	const archiveName = `ffmpeg-master-latest-${buildTarget.asFFmpegFormat()}-lgpl`;
 	const url = `https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/${archiveName}.${buildTarget.isWindows ? "zip" : "tar.xz"}`;
 	console.log(`Downloading ffmpeg: ${url}`);
 	await downloadAndExtract(url);
@@ -256,7 +257,7 @@ async function getFfmpeg(buildTarget: BuildTarget) {
 		? join(unpackedDirectory, "bin", "ffmpeg.exe")
 		: join(unpackedDirectory, "bin", "ffmpeg");
 	const ffmpegLicense = join(unpackedDirectory, "LICENSE.txt");
-	
+
 	if (!existsSync(ffmpegExecutable)) {
 		program.error(`Failed to find ffmpeg executable: ${ffmpegExecutable}`);
 	}
@@ -321,6 +322,9 @@ program
 		if (!existsSync(join(root, "dist"))) {
 			mkdirSync(join(root, "dist"));
 		}
+		if (!existsSync(join(root, "intermediate"))) {
+			mkdirSync(join(root, "intermediate"));
+		}
 
 		for (const target of targets) {
 			writeConfig(target, ffmpegMode);
@@ -335,21 +339,21 @@ program
 		if (minimumNodeVersion.compare(targetNodeVersion) > 0) {
 			program.error(`Incompatible target build node version: ${targetNodeVersion}. Minimum required: ${minimumNodeVersion}`);
 		}
-		
+
 		for (const target of targets) {
 			if (ffmpegMode === "static") {
 				await getFfmpeg(target);
 			}
 
-			console.log(`Generating blob for ${target.asNodeString()}`);
+			console.log(`Generating blob for ${target.asNodeFormat()}`);
 			generateBlob(target, ffmpegMode);
 		}
 
 		const ffmpegSuffix = {static: "", shared: "-shared", none: "-no-ffmpeg"}[ffmpegMode || "static"];
-		
+
 		for (const target of targets) {
 			const executablePath = await getNode(target, targetNodeVersion);
-			const appName = `PartyPooper-${target.asNodeString()}${ffmpegSuffix}`;
+			const appName = `PartyPooper-${target.asNodeFormat()}${ffmpegSuffix}`;
 			const distExecutable = join("./dist", `${appName}${target.isWindows ? ".exe" : ""}`);
 			copyFileSync(executablePath, distExecutable);
 
@@ -358,7 +362,7 @@ program
 			await inject(
 				distExecutable,
 				"NODE_SEA_BLOB",
-				readFileSync(`./dist/partypooper-${target.asNodeString()}${ffmpegSuffix}.blob`),
+				readFileSync(`./intermediate/partypooper-${target.asNodeFormat()}${ffmpegSuffix}.blob`),
 				{sentinelFuse: "NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"}
 			);
 

@@ -1,7 +1,7 @@
 import { existsSync } from "fs";
 import { basename, dirname, join } from "path";
 
-import configString from "./config.json";
+import type { Asset } from "../../shared/AssetManifest";
 
 //#if BUILD !== "debug"
 import { mkdirSync, writeFileSync } from "fs";
@@ -9,18 +9,16 @@ import { getAsset } from "node:sea";
 import { homedir } from "os";
 //#endif
 
-const config: typeof configString = JSON.parse(configString as unknown as string);
+import buildAssets from "../../intermediate/config.txt";
 
-export type Asset = keyof typeof config.assets;
+const {assets} = JSON.parse(buildAssets) as {assets: Record<Asset, string>};
 
 export function EnsureAsset(asset: Asset) {
-	if (!(asset in config.assets)) {
-		throw new Error(`Unknown asset: ${asset}`);
-	}
+	if (!(asset in assets)) throw new Error(`Unknown asset: ${asset}`);
 
-	//#if BUILD === "debug"
-	return EnsureAssetLocal(asset, config.assets[asset]);
-	//#else
+//#if BUILD === "debug"
+	return EnsureAssetLocal(asset, assets[asset]);
+//#else
 
 	let assetPath: string;
 	//#if IS_WINDOWS
@@ -29,9 +27,9 @@ export function EnsureAsset(asset: Asset) {
 	assetPath = process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share");
 	//#endif
 
-	assetPath = join(assetPath, "partypooper", basename(config.assets[asset]));
+	assetPath = join(assetPath, "partypooper", basename(assets[asset]));
 	return EnsureAssetSea(asset, assetPath);
-	//#endif
+//#endif
 }
 
 //#if BUILD === "debug"
@@ -40,7 +38,7 @@ function EnsureAssetLocal(asset: string, configPath: string) {
 	throw new Error(`Asset not found: ${asset}`);
 }
 //#else
-function EnsureAssetSea(asset:string, assetPath: string) {
+function EnsureAssetSea(asset: string, assetPath: string) {
 	if (existsSync(assetPath)) return {assetPath, existed: true};
 
 	const assetDir = dirname(assetPath);

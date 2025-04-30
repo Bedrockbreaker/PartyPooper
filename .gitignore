@@ -1,7 +1,7 @@
 # Generated
 dist/
+intermediate/
 node_modules/
-src/config.json
 
 # Testing
 mod/

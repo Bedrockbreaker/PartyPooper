@@ -1,6 +1,6 @@
 // Postject does not define types
 
-declare module 'postject' {
+declare module "postject" {
 	interface InjectOptions {
 		/**
 		 * @default false

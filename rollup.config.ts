@@ -148,20 +148,20 @@ if (ffmpegSuffix === undefined) {
 	throw new Error(`Unknown FFMPEG environment variable: ${process.env.FFMPEG}`)
 }
 
-const output: OutputOptions[] = [
-	{
+const output: OutputOptions[] = [];
+
+if (process.env.BUILD === "debug") {
+	output.push({
 		file: `./dist/partypooper-${process.env.TARGET}${ffmpegSuffix}-${process.env.BUILD}.cjs`,
 		format: "commonjs"
-	}
-];
-
-if (process.env.BUILD === "release") {
+	});
+} else if (process.env.BUILD === "release") {
 	output.push({
-		file: `./dist/partypooper-${process.env.TARGET}${ffmpegSuffix}.cjs`,
+		file: `./intermediate/partypooper-${process.env.TARGET}${ffmpegSuffix}.cjs`,
 		format: "commonjs",
 		plugins: [terser()]
 	});
-} else if (process.env.BUILD !== "debug") {
+} else {
 	throw new Error(`Unknown build mode: ${process.env.BUILD}`);
 }
 
@@ -173,7 +173,7 @@ export const options: RollupOptions = {
 		conditionalCompiler(),
 		nodeResolve(),
 		commonjs(),
-		fileImport(["**/*.json"])
+		fileImport(["**/*.json", "**/*.txt"])
 	],
 	external: ["node:sea"]
 };

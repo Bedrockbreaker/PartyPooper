@@ -1,6 +1,6 @@
 import { program } from "@commander-js/extra-typings";
 
-import { ZipDirectory } from "./Zip";
+import { ZipDirectory } from "../../shared/ZipArchive";
 
 program
 	.command("pack")
