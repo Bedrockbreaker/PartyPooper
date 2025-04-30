@@ -67,4 +67,4 @@ Options:
 ```
 
 > [!NOTE]
-> Some of the build defaults are dependant on the host platform and version of Node being used.
+> Some of the build defaults are dependent on the host platform and version of Node being used.
