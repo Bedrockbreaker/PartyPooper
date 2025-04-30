@@ -6,3 +6,6 @@ src/config.json
 # Testing
 mod/
 partyproject/
+
+# User-only
+docs/.obsidian/workspace.json
