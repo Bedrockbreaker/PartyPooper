@@ -1,5 +1,6 @@
 import { program } from "@commander-js/extra-typings";
 
+import "./Commands/Decompile";
 import "./Commands/Pack";
 import "./Commands/Unpack";
 
